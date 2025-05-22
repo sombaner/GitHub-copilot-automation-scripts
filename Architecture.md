@@ -5,27 +5,24 @@
 ```mermaid
 flowchart TD
     subgraph "Azure Cloud"
-        timer[Timer Trigger] -->|Invokes Daily| function[Azure Function]
+        timer[Timer Trigger] -->|Triggers Daily| function[Azure Function]
         function -->|Authenticates| keyvault[Azure Key Vault]
-        keyvault -.->|Returns GitHub Token| function
+        keyvault -.->|Returns Token| function
         
-        function -->|1. Fetch Teams| github[GitHub Enterprise APIs]
-        function -->|2. Fetch Billing Seats| github
-        function -->|3. Fetch User Details| github
+        function -->|Fetch Data| github[GitHub Enterprise APIs]
         
-        function -->|Store CSV Report| blob[Azure Blob Storage]
-        function -->|Get Email Recipients| blob
+        function -->|Store Reports| blob[Azure Blob Storage]
+        blob -->|Provide Recipients| function
         
-        function -->|Send Report Email| communication[Azure Communication Services]
-        communication -->|Delivers To| recipients[Distribution List]
+        function -->|Send Email| communication[Azure Communication Services]
+        communication -->|Deliver| recipients[Distribution List]
         
-        appinsights[Application Insights] -.->|Monitors| function
+        appinsights[Application Insights] -.->|Monitor| function
     end
     
     subgraph "GitHub Enterprise"
-        github -->|Teams API| teamsAPI["GET /enterprises/{enterprise}/teams"]
-        github -->|Copilot API| seatsAPI["GET /enterprises/{enterprise}/copilot/billing/seats"]
-        github -->|User API| userAPI["GET /users/{username}"]
+        github -->|API Endpoints| apis["REST API Endpoints"]
+        apis -->|Teams, Copilot Usage, Users| function
     end
     
     classDef azure fill:#0078D4,stroke:#0078D4,color:white;
@@ -34,20 +31,18 @@ flowchart TD
     
     class timer,function,keyvault,blob,communication,recipients azure;
     class appinsights monitoring;
-    class github,teamsAPI,seatsAPI,userAPI github;
+    class github,apis github;
 ```
 
 ## Flow Diagram and Documentation
 
-# GitHub Copilot Enterprise Activity Reporting System
-
-## 1. System Overview
+### 1. System Overview
 
 The GitHub Copilot Enterprise Activity Reporting System is an automated solution implemented as an Azure Function that collects, processes, and distributes GitHub Copilot usage data across an enterprise. The system generates daily CSV reports containing user-level activity information and team associations, stores these reports in Azure Blob Storage, and distributes them via email to designated recipients.
 
-## 2. Architecture Components
+### 2. Architecture Components
 
-### 2.1 Azure Function
+#### 2.1 Azure Function
 - **Type**: Timer-triggered function
 - **Runtime**: Python
 - **Schedule**: Runs daily
